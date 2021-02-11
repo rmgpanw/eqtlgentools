@@ -1,0 +1,217 @@
+---
+title: "Explore full eQTLGen cis-eQTL dataset"
+output: html_notebook
+---
+
+```{r include=FALSE}
+library(data.table)
+library(tidyverse)
+```
+
+```{r include=FALSE}
+# cis-eqtl data: read first 100 rows
+eqtl_100rows <- fread(file = "../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
+  nrows = 100)
+
+# cis-eqtl data: read all rows, SNP col only
+eqtl_SNP_col <- fread(file = "../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
+    select = c("SNP"))
+
+# allele frequency data
+allele_freq <- fread(file = "../data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
+                     select = c("AlleleB_all", "SNP"))
+
+# source scripts
+source("../R/beta_se_from_zscore_maf.R")
+source("../R/process_file_chunked.R")
+```
+
+# Overview
+
+**Aim:** to convert z-scores to betas and SEs in the [cis-eQTL dataset](https://www.eqtlgen.org/cis-eqtls.html) from [eQTLGen](https://www.eqtlgen.org/) ([click here to donwnload dataset](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt.gz)).
+
+- Convert z-scores to betas/SEs: [see README](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/SMR_formatted/README_cis_full_SMR). ***Note: there is a missing closing bracket at the end of both formulae. I double checked the formulae with this [biostars post](https://www.biostars.org/p/235966/).
+- Allele frequencies (needed for conversion):
+
+  - [Download link](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt.gz)
+  - [README](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_allele_frequency)
+
+# Allele frequencies
+
+- All values in SNP col are unique
+- No `NA` values in SNP col
+
+```{r}
+nrow(allele_freq)
+
+length(unique(allele_freq$SNP))
+
+sum(is.na(allele_freq$SNP))
+```
+
+# eqtl file
+
+- All values in SNP col are unique
+- No `NA` values in SNP col
+
+```{r}
+nrow(eqtl_SNP_col)
+
+length(unique(eqtl_SNP_col$SNP))
+
+sum(is.na(eqtl_SNP_col$SNP))
+```
+
+# Convert Z-scores to beta and SE
+
+beta = Z-score / sqrt(2 * alleleFreq * (1-alleleFreq) * (N + Z-score^2)
+se = 1 / sqrt(2 * alleleFreq * (1-alleleFreq) * (N + Z-score^2)
+
+## Merge eQTL data with allele frequencies
+
+According to README files, the `AssessedAllele` in the eQTL dataset corresponds to `AlleleB` in the allele frequency file. Therefore, the allele frequency to use is in column `AlleleB_all`.
+
+```{r}
+eqtl_100rows_maf <- eqtl_100rows %>% 
+  left_join(allele_freq, by = "SNP")
+
+# raise error if these columns do not correspond
+if(!(all(eqtl_100rows_maf$AssessedAllele == eqtl_100rows_maf$AlleleB))) {
+  stop("Error! Effect allele column differs between cis-eQTL and maf files.")
+}
+```
+
+## Mutate betas and SEs
+
+```{r}
+# get allele frequencies
+eqtl_100rows_maf <- eqtl_100rows_maf %>% 
+  mutate(
+    beta = Zscore / sqrt(2 * AlleleB_all * (1-AlleleB_all) * (NrSamples + Zscore^2)),
+    se = 1 / sqrt(2 * AlleleB_all * (1-AlleleB_all) * (NrSamples + Zscore^2))
+  )
+```
+
+# Repeat using functions
+
+## Test informally
+
+```{r}
+# mutate beta and se in new df
+test <- eqtl_100rows %>%
+  left_join(allele_freq, by = "SNP")
+
+test$beta <- beta_se_from_zscore(
+  df = test,
+  zscore = "Zscore",
+  maf = "AlleleB_all",
+  sample_n = "NrSamples",
+  beta_se = "beta"
+)
+
+test$se <- beta_se_from_zscore(
+  df = test,
+  zscore = "Zscore",
+  maf = "AlleleB_all",
+  sample_n = "NrSamples",
+  beta_se = "se"
+)
+
+# check that these equal results above - error if not
+if ((!all(test$beta == eqtl_100rows_maf$beta)) |
+    (!all(test$se == eqtl_100rows_maf$se))) {
+  stop("Different results produced for beta/se")
+}
+```
+
+
+```{r}
+# function specific to this data
+test <- mutate_beta_se_from_zscore_eqtlgen_cis_eqtl(eqtl_100rows, 
+                                                    allele_freq)
+
+# check that these equal results above - error if not
+if ((!all(test$beta == eqtl_100rows_maf$beta)) |
+    (!all(test$se == eqtl_100rows_maf$se))) {
+  stop("Different results produced for beta/se")
+}
+```
+
+## Test using `testthat`
+
+See script under `tests/testthat` directory for tests
+
+# Process file in chunks
+
+I created a file called `test.txt` which is the first 1000 rows of the eQTL data. Aim here is to write a new file with additional beta and se columns.
+
+```{bash}
+head -n 1000 ../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt > ../data/raw/test.txt
+```
+
+
+```{r}
+# write new file with additional beta/SE cols
+process_file_chunked(
+  infile_path = "../data/raw/test.txt",
+  outfile_path = "../data/raw/test_processed.txt",
+  data_processing_function = mutate_beta_se_from_zscore_eqtlgen_cis_eqtl,
+  chunk_size = 100,
+  eqtlgen_cis_eqtl_maf_df = allele_freq
+)
+
+# test
+test <- fread("../data/raw/test.txt")
+test_processed <- fread("../data/raw/test_processed.txt")
+
+test <- mutate_beta_se_from_zscore_eqtlgen_cis_eqtl(test, 
+                                                    allele_freq)
+
+if ((!all(test$beta == test_processed$beta)) |
+    (!all(test$se == test_processed$se))) {
+  stop("Different results produced for beta/se")
+}
+```
+
+Now with only file paths
+
+```{r}
+# write file
+append_beta_se_to_eqtlgen_cis_eqtl(
+  eqtlgen_cis_eqtl_filepath = "../data/raw/test.txt",
+  eqtlgen_cis_eqtl_maf_filepath = "../data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
+  outfile_path = "../data/raw/test_processed2.txt",
+  chunk_size = 500
+)
+
+# test
+test_processed2 <- fread("../data/raw/test_processed2.txt")
+
+if ((!all(test$beta == test_processed2$beta)) |
+    (!all(test$se == test_processed2$se))) {
+  stop("Different results produced for beta/se")
+}
+```
+
+# Clean up
+
+```{r}
+file.remove(c("../data/raw/test.txt",
+              "../data/raw/test_processed.txt",
+              "../data/raw/test_processed2.txt"))
+```
+
+# Process full file
+
+Unhash to run
+
+```{r}
+# full file
+append_beta_se_to_eqtlgen_cis_eqtl(
+  eqtlgen_cis_eqtl_filepath = "../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
+  eqtlgen_cis_eqtl_maf_filepath = "../data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
+  outfile_path = "../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded-beta-se.txt",
+  chunk_size = 1000000
+)
+```
+
