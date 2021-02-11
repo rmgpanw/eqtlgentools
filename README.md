@@ -8,7 +8,9 @@
 <!-- badges: end -->
 
 The goal of eqtlgentools is to generate beta and standard error values
-for the [eQTLGen](https://www.eqtlgen.org/) \[cis-eQTL\] dataset. This
+for the
+[cis-eQTL](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_cis)
+dataset from the [eQTLGen Consortium](https://www.eqtlgen.org/). This
 requires [allele
 frequencies](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_allele_frequency)
 from a separate file. Files are publicly available from
@@ -16,7 +18,7 @@ from a separate file. Files are publicly available from
 
 The calculations for converting Z-scores to betas and standard errors
 are documented in this
-[README](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_allele_frequency).
+[here](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_allele_frequency).
 
 ## Installation
 
@@ -41,5 +43,6 @@ append_beta_se_to_eqtlgen_cis_eqtl(
 )
 ```
 
-For a full list of available function, please visit the [pacakge
-website](https://rmgpanw.github.io/eqtlgentools/).
+For a full list of available functions, please see
+[`Reference`](https://rmgpanw.github.io/eqtlgentools/reference/index.html)
+section on [package website](https://rmgpanw.github.io/eqtlgentools/).
