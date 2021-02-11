@@ -13,11 +13,11 @@ append_beta_se_to_eqtlgen_cis_eqtl(
 )
 }
 \arguments{
-\item{eqtlgen_cis_eqtl_filepath}{Character. Path to}
+\item{eqtlgen_cis_eqtl_filepath}{Character. Path to
+\href{https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_cis}{cis-eQTL
+file}}
 
-\item{eqtlgen_cis_eqtl_maf_filepath}{Character. Path
-to\href{https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_cis}{cis-eQTL
-file}
+\item{eqtlgen_cis_eqtl_maf_filepath}{Character. Path to
 \href{https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_allele_frequency}{cis_eQTL
 mean allele frequency file}}
 

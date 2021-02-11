@@ -8,9 +8,9 @@
 #' separate file}) values.
 #'
 #' @param eqtlgen_cis_eqtl_filepath Character. Path to
-#' @param eqtlgen_cis_eqtl_maf_filepath Character. Path
-#'   to\href{https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_cis}{cis-eQTL
-#'   file}
+#'   \href{https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_cis}{cis-eQTL
+#'    file}
+#' @param eqtlgen_cis_eqtl_maf_filepath Character. Path to
 #'   \href{https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_allele_frequency}{cis_eQTL
 #'    mean allele frequency file}
 #' @inheritParams process_file_chunked
