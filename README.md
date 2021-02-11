@@ -40,3 +40,6 @@ append_beta_se_to_eqtlgen_cis_eqtl(
   chunk_size = 1000000
 )
 ```
+
+For a full list of available function, please visit the [pacakge
+website](https://rmgpanw.github.io/eqtlgentools/).
