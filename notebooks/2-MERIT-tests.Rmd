@@ -1,0 +1,54 @@
+---
+title: "MERIT test"
+output: html_notebook
+---
+
+```{r}
+library(eqtlgentools)
+```
+
+```{r}
+# read first 100 rows of raw cis-eqtl data
+eqtlgen_100 <- data.table::fread(
+  file = "../tests/data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
+  nrows = 100
+  )
+
+# read allele frequency data
+allele_freq <- data.table::fread(
+  file = "../tests/data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
+  select = c("AlleleB_all", "SNP")
+  )
+
+# read first 100 rows of cis-eqtl data with beta/SE cols appended by merit
+merit_eqtlgen_100 <- readr::read_tsv("../tests/data/eqtlgen_ciseqtl_head_100_merit.txt")
+```
+
+# Overview
+
+Compare results when computing beta/SE values for eqtlgen cis-eqtl data using R (`eqtgentools`) and python ([`merit`](https://gitlab.com/cfinan/merit/-/blob/dev/merit/data_tools.py#L1738))
+
+`eqtlgen_ciseqtl_head_100_merit.txt` includes beta and SE columns appended by [`merit`](https://gitlab.com/cfinan/merit/-/blob/dev/merit/data_tools.py#L1738). See `merit_calc_beta_from_z_test.py`.
+
+# R
+
+```{r}
+r_eqtlgen_100 <- mutate_beta_se_from_zscore_eqtlgen_cis_eqtl(eqtlgen_cis_eqtl_df = eqtlgen_100, 
+                                                             eqtlgen_cis_eqtl_maf_df = allele_freq)
+```
+
+# Compare R and Merit
+
+## Beta col
+
+```{r}
+all.equal(merit_eqtlgen_100$Zscore, r_eqtlgen_100$beta)
+```
+
+## SE col
+
+```{r}
+all.equal(merit_eqtlgen_100$standard_error, r_eqtlgen_100$se)
+```
+
+

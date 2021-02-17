@@ -10,15 +10,15 @@ library(tidyverse)
 
 ```{r include=FALSE}
 # cis-eqtl data: read first 100 rows
-eqtl_100rows <- fread(file = "../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
+eqtl_100rows <- fread(file = "../tests/data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
   nrows = 100)
 
 # cis-eqtl data: read all rows, SNP col only
-eqtl_SNP_col <- fread(file = "../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
+eqtl_SNP_col <- fread(file = "../tests/data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
     select = c("SNP"))
 
 # allele frequency data
-allele_freq <- fread(file = "../data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
+allele_freq <- fread(file = "../tests/data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
                      select = c("AlleleB_all", "SNP"))
 
 # source scripts
@@ -27,6 +27,8 @@ source("../R/process_file_chunked.R")
 ```
 
 # Overview
+
+> This is a throw away script. Explores the eQTLgen cis-eqtl dataset (all functions now in `R` directory of package). Final code chunk is for appending beta and SE columns to the raw data, which resides in `tests/data`.
 
 **Aim:** to convert z-scores to betas and SEs in the [cis-eQTL dataset](https://www.eqtlgen.org/cis-eqtls.html) from [eQTLGen](https://www.eqtlgen.org/) ([click here to donwnload dataset](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt.gz)).
 
@@ -146,23 +148,23 @@ See script under `tests/testthat` directory for tests
 I created a file called `test.txt` which is the first 1000 rows of the eQTL data. Aim here is to write a new file with additional beta and se columns.
 
 ```{bash}
-head -n 1000 ../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt > ../data/raw/test.txt
+head -n 1000 ../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt > ../tests/data/raw/test.txt
 ```
 
 
 ```{r}
 # write new file with additional beta/SE cols
 process_file_chunked(
-  infile_path = "../data/raw/test.txt",
-  outfile_path = "../data/raw/test_processed.txt",
+  infile_path = "../tests/data/raw/test.txt",
+  outfile_path = "../tests/data/raw/test_processed.txt",
   data_processing_function = mutate_beta_se_from_zscore_eqtlgen_cis_eqtl,
   chunk_size = 100,
   eqtlgen_cis_eqtl_maf_df = allele_freq
 )
 
 # test
-test <- fread("../data/raw/test.txt")
-test_processed <- fread("../data/raw/test_processed.txt")
+test <- fread("../tests/data/raw/test.txt")
+test_processed <- fread("../tests/data/raw/test_processed.txt")
 
 test <- mutate_beta_se_from_zscore_eqtlgen_cis_eqtl(test, 
                                                     allele_freq)
@@ -179,13 +181,13 @@ Now with only file paths
 # write file
 append_beta_se_to_eqtlgen_cis_eqtl(
   eqtlgen_cis_eqtl_filepath = "../data/raw/test.txt",
-  eqtlgen_cis_eqtl_maf_filepath = "../data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
-  outfile_path = "../data/raw/test_processed2.txt",
+  eqtlgen_cis_eqtl_maf_filepath = "../tests/data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
+  outfile_path = "../tests/data/raw/test_processed2.txt",
   chunk_size = 500
 )
 
 # test
-test_processed2 <- fread("../data/raw/test_processed2.txt")
+test_processed2 <- fread("../tests/data/raw/test_processed2.txt")
 
 if ((!all(test$beta == test_processed2$beta)) |
     (!all(test$se == test_processed2$se))) {
@@ -196,9 +198,9 @@ if ((!all(test$beta == test_processed2$beta)) |
 # Clean up
 
 ```{r}
-file.remove(c("../data/raw/test.txt",
-              "../data/raw/test_processed.txt",
-              "../data/raw/test_processed2.txt"))
+file.remove(c("../tests/data/raw/test.txt",
+              "../tests/data/raw/test_processed.txt",
+              "../tests/data/raw/test_processed2.txt"))
 ```
 
 # Process full file
@@ -208,9 +210,9 @@ Unhash to run
 ```{r}
 # full file
 append_beta_se_to_eqtlgen_cis_eqtl(
-  eqtlgen_cis_eqtl_filepath = "../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
-  eqtlgen_cis_eqtl_maf_filepath = "../data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
-  outfile_path = "../data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded-beta-se.txt",
+  eqtlgen_cis_eqtl_filepath = "../tests/data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded.txt",
+  eqtlgen_cis_eqtl_maf_filepath = "../tests/data/raw/2018-07-18_SNP_AF_for_AlleleB_combined_allele_counts_and_MAF_pos_added.txt",
+  outfile_path = "../tests/data/raw/2019-12-11-cis-eQTLsFDR-ProbeLevel-CohortInfoRemoved-BonferroniAdded-beta-se.txt",
   chunk_size = 1000000
 )
 ```

@@ -13,11 +13,11 @@
 #'
 #' @return A dataframe with appended \code{beta} and \code{se} columns
 #' @export
-#' 
+#'
 mutate_beta_se_from_zscore_eqtlgen_cis_eqtl <- function(eqtlgen_cis_eqtl_df,
                                                         eqtlgen_cis_eqtl_maf_df) {
   eqtlgen_cis_eqtl_df %>%
-    dplyr::left_join(eqtlgen_cis_eqtl_maf_df, by = "SNP") %>% 
+    dplyr::left_join(eqtlgen_cis_eqtl_maf_df, by = "SNP") %>%
     mutate_beta_se_from_zscore(zscore = "Zscore",
                                maf = "AlleleB_all",
                                sample_n = "NrSamples",
@@ -30,7 +30,7 @@ mutate_beta_se_from_zscore_eqtlgen_cis_eqtl <- function(eqtlgen_cis_eqtl_df,
 #' Appends columns with beta and standard error values to a dataframe containing
 #' columns for Z-scores, allele frequencies and sample sizes.
 #'
-#' @inheritParams beta_se_from_zscore 
+#' @inheritParams beta_se_from_zscore
 #'
 #' @return A dataframe with appended \code{beta} and \code{se} columns
 #' @export
@@ -49,7 +49,7 @@ mutate_beta_se_from_zscore <- function(df,
     sample_n = sample_n,
     beta_se = "beta"
   )
-  
+
   # mutate se column
   df$se <- beta_se_from_zscore(
     df = df,
@@ -58,7 +58,7 @@ mutate_beta_se_from_zscore <- function(df,
     sample_n = sample_n,
     beta_se = "se"
   )
-  
+
   return(df)
 }
 
@@ -73,7 +73,7 @@ mutate_beta_se_from_zscore <- function(df,
 #' @param maf Colname from \code{df} containing allele frequencies
 #' @param sample_n Colname from \code{df} containing sample size
 #' @param beta_se Character. Must be either \code{"beta"} or \code{"se"}
-#' 
+#'
 #' @return A numerical vector of either beta or standard error values
 #' @export
 
@@ -86,14 +86,15 @@ beta_se_from_zscore <- function(df,
   if (beta_se == 'beta') {
     df[[zscore]] /
       sqrt(2 * df[[maf]] * (1 - df[[maf]]) * (df[[sample_n]] + df[[zscore]] ^ 2))
-    
+
     # return se
   } else if (beta_se == "se") {
-    1 / sqrt(2 * df[[maf]] * (1 - df[[maf]]) * (df[[sample_n]] + df[[zscore]] ^ 2))
-    
+    1 /
+      sqrt(2 * df[[maf]] * (1 - df[[maf]]) * (df[[sample_n]] + df[[zscore]] ^ 2))
+
     # error if invalid beta_se value
   } else {
     stop("Argument 'beta_se' must be either 'beta' or 'se'")
   }
-  
+
 }

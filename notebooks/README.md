@@ -1,0 +1,1 @@
+Notebooks in this directory are not part of the `eqtlgentools` R package. eQTLgen cis-eQTL data is also stored in the `tests/data` directory, which is not pushed to github and also not part of the package either.

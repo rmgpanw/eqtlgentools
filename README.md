@@ -4,7 +4,6 @@
 # eqtlgentools
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 The goal of eqtlgentools is to generate beta and standard error values
@@ -18,7 +17,7 @@ from a separate file. Files are publicly available from
 
 The calculations for converting Z-scores to betas and standard errors
 are documented in this
-[here](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/README_allele_frequency).
+[here](https://molgenis26.gcc.rug.nl/downloads/eqtlgen/cis-eqtl/SMR_formatted/README_cis_full_SMR).
 
 ## Installation
 
